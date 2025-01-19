@@ -24,7 +24,7 @@ export default function RegisterPage() {
     defaultValues: {
       userName: "",
       email: "",
-      number: "",
+      phoneNumber: "",
       password: "",
       confirmPassword: "",
     },
@@ -36,14 +36,11 @@ export default function RegisterPage() {
     try {
       // eslint-disable-next-line @typescript-eslint/no-unused-vars
       const { confirmPassword, ...rest } = values;
-
       const response = await customAxios.post("/auth/register", rest);
-      //token set on axios interceptors
-      setBackMessage(response.data.message);
+      setBackMessage(response.data.message);  //token set on axios interceptors
       if (localStorage.getItem("token")) {
-        router.push("/");
+        router.push("/chat");
       }
-
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
     } catch (error: any) {
       console.log(error);
@@ -64,7 +61,7 @@ export default function RegisterPage() {
             <FormItem>
               <FormLabel>username</FormLabel>
               <FormControl>
-                <Input placeholder="Jhon doe" {...field} type="text" />
+                <Input placeholder="your name" {...field} type="text" />
               </FormControl>
               <FormMessage />
             </FormItem>
@@ -85,7 +82,7 @@ export default function RegisterPage() {
         />
         <FormField
           control={form.control}
-          name="number"
+          name="phoneNumber"
           render={({ field }) => (
             <FormItem>
               <FormLabel>Phone number</FormLabel>
@@ -131,7 +128,7 @@ export default function RegisterPage() {
         <div className="text-center mt-4 text-sm">
           ¿Dont have an account?{" "}
           <Link
-            href="/authentication/login"
+            href="/authentication"
             className=" text-blue-400 hover:underline font-medium"
           >
             Login

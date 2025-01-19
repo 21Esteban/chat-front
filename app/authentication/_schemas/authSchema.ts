@@ -13,7 +13,7 @@ export const registerSchema = z
       .string()
       .min(3, { message: "Username must be at least 3 characters long" }),
     email: z.string().email({ message: "Invalid email format" }),
-    number: z
+    phoneNumber: z
       .string()
       .min(10, { message: "Phone number must be at least 10 characters long" }),
     password: z

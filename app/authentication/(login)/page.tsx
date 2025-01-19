@@ -38,7 +38,7 @@ export default function LoginPage(){
       }
       if (token) {
         localStorage.setItem("token", token);
-        router.push("/");
+        router.push("/chat");
       }
     } catch (error) {
       console.error("Error during sign-in:", error);

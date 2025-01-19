@@ -1,9 +1,9 @@
-"use client"
+"use client";
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { MessageSquare, Settings } from "lucide-react";
+import { Avatar, AvatarFallback } from "@/components/ui/avatar";
+import { MessageSquare, Settings, User } from "lucide-react";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -37,21 +37,29 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { useRouter } from "next/navigation";
 import customAxios from "@/app/_lib/customAxios";
+import { Chat } from "../_interfaces/chat-inteface";
 
 const formSchema = z.object({
+  chatName: z.string().nonempty("Name is required"),
   phoneNumberContact: z
     .string()
     .min(10, { message: "Phone number must be at least 10 digits" })
     .max(10, { message: "Phone number cannot exceed 10 digits" }),
 });
 
-export default function ChatList({ chats, onSelectChat }){
+interface ChatListProps {
+  chats: Chat[];
+  chatSelected: number;
+}
+
+export default function ChatList({ chats, chatSelected }: ChatListProps) {
   const router = useRouter();
   const [isLoading, setIsLoading] = useState(false);
   const [backMessage, setBackMessage] = useState("");
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
     defaultValues: {
+      chatName: "",
       phoneNumberContact: "",
     },
   });
@@ -59,7 +67,10 @@ export default function ChatList({ chats, onSelectChat }){
   async function createChat(values: z.infer<typeof formSchema>) {
     try {
       setIsLoading(true);
-      const backResponse = await customAxios.post("/chat", values);
+      const user = JSON.parse(localStorage.getItem("user") || "{}");
+      const {phoneNumber} = user
+      console.log({phoneNumber,...values})
+      const backResponse = await customAxios.post("/chat", {phoneNumber,...values});
       setBackMessage(backResponse.data.message);
     } catch (error) {
       console.log(error);
@@ -69,9 +80,8 @@ export default function ChatList({ chats, onSelectChat }){
     }
   }
 
-
   return (
-    <aside className="h-[90%] w-80 bg-card text-card-foreground flex flex-col shadow-lg border-r border-border">
+    <aside className="h-[90%] w-80 bg-card text-card-foreground flex flex-col border border-border">
       {/* Encabezado */}
       <div className="flex items-center justify-between p-6 border-b border-border">
         <h1 className="text-lg font-semibold">Chats</h1>
@@ -85,7 +95,7 @@ export default function ChatList({ chats, onSelectChat }){
             <DropdownMenuItem
               onClick={() => {
                 localStorage.removeItem("token");
-                router.push("auth/login");
+                router.push("authentication");
               }}
             >
               Sign out
@@ -106,35 +116,30 @@ export default function ChatList({ chats, onSelectChat }){
       {/* Lista de Chats */}
       <nav className="flex-1 overflow-y-auto">
         <ul className="space-y-2 p-4">
-          {chats.map((chat) => (
-            <li key={chat.id} onClick={()=>onSelectChat(chat.id)}>
-                <Button
-                  variant="ghost"
-                  className="w-full h-14 flex items-center rounded-lg hover:bg-muted"
-                  
-                >
-                  <Avatar className="mr-3">
-                    {chat.avatarUrl ? (
-                      <AvatarImage src={chat.avatarUrl} alt={chat.name} />
-                    ) : (
-                      <AvatarFallback>{chat.name.charAt(0)}</AvatarFallback>
-                    )}
-                  </Avatar>
-                  <div className="flex-1 text-left">
-                    <p className="text-sm font-medium">{chat.name}</p>
-                    <p className="text-xs text-muted-foreground truncate">
-                      {chat.lastMsg}
-                    </p>
-                  </div>
-                  <MessageSquare className="w-4 h-4 text-muted-foreground" />
-                </Button>
+          {chats.map((chat: Chat, index: number) => (
+            <li key={chat.id}>
+              <Button
+                variant={chatSelected == index ? "secondary" : "ghost"}
+                className="w-full h-14 flex items-center rounded-lg hover:bg-muted"
+              >
+                <Avatar className="mr-3">
+                  <AvatarFallback>{chat.name[0]}</AvatarFallback>
+                </Avatar>
+                <div className="flex-1 text-left">
+                  <p className="text-sm font-medium">{chat.name}</p>
+                  <p className="text-xs text-muted-foreground truncate">
+                    {chat.lastMessage}
+                  </p>
+                </div>
+                <MessageSquare className="w-4 h-4 text-muted-foreground" />
+              </Button>
             </li>
           ))}
         </ul>
       </nav>
 
       {/* Pie de página */}
-      <div className="p-4 border-t border-border">
+      <div className="p-4 border-border">
         <AlertDialog>
           <AlertDialogTrigger asChild>
             <Button variant="outline" className="w-full">
@@ -149,8 +154,22 @@ export default function ChatList({ chats, onSelectChat }){
             <Form {...form}>
               <form
                 onSubmit={form.handleSubmit(createChat)}
-                className="space-y-8"
+                className="space-y-4"
               >
+                <FormField
+                  control={form.control}
+                  name="chatName"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>chat name</FormLabel>
+                      <FormControl>
+                        <Input placeholder="juan" {...field} />
+                      </FormControl>
+                      <FormDescription>This is chat name.</FormDescription>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
                 <FormField
                   control={form.control}
                   name="phoneNumberContact"
@@ -161,12 +180,13 @@ export default function ChatList({ chats, onSelectChat }){
                         <Input placeholder="302 3240 ..." {...field} />
                       </FormControl>
                       <FormDescription>
-                        This is your public display name.
+                        This is your contact phone.
                       </FormDescription>
                       <FormMessage />
                     </FormItem>
                   )}
                 />
+
                 <Button type="submit">Submit</Button>
               </form>
             </Form>
@@ -180,4 +200,4 @@ export default function ChatList({ chats, onSelectChat }){
       </div>
     </aside>
   );
-};
+}

@@ -14,8 +14,6 @@ const chatData = [
   {
     id: 1,
     name: "Juan Pérez",
-    avatar: "https://placekitten.com/50/50",
-    isOnline: true,
     messages: [
       {
         id: 1,
@@ -40,8 +38,6 @@ const chatData = [
   {
     id: 2,
     name: "María López",
-    avatar: "https://placekitten.com/51/51",
-    isOnline: false,
     messages: [
       {
         id: 1,
@@ -66,8 +62,6 @@ const chatData = [
   {
     id: 3,
     name: "Carlos García",
-    avatar: "https://placekitten.com/52/52",
-    isOnline: true,
     messages: [
       {
         id: 1,
@@ -92,26 +86,19 @@ const chatData = [
 ];
 
 export default function ChatLayout() {
-  const [selectedChat, setSelectedChat] = useState(chatData[0]); // Chat por defecto
-
-  const selectChat = (chatId:number) => {
-    setSelectedChat(chatData[chatId]);
-  };
+  const [selectedChat] = useState(chatData[0]); // Chat por defecto
 
   return (
     <main className="flex justify-center items-center p-10 h-screen antialiased text-foreground bg-customGray">
-      <ChatList chats={chatData} onSelectChat={selectChat} />
+      <ChatList chats={chatData} chatSelected={0} />
       {selectedChat ? (
-        <div className="flex flex-col flex-grow h-[90%] bg-card shadow-md">
+        <div className="flex flex-col flex-grow h-[90%] bg-card border border-border">
           {/* Header */}
-          <Header
-            userName={selectedChat.name}
-            imgProfile={selectedChat.avatar}
-          />
+          <Header userName={selectedChat.name} />
 
           {/* Chat Area */}
           <div className="flex flex-col h-full px-8 overflow-hidden">
-            <ScrollArea className="flex-1 mb-4 mt-">
+            <ScrollArea className="flex-1 mb-4 mt-4">
               {selectedChat.messages.map((message) => (
                 <ChatBubble
                   key={message.id}
