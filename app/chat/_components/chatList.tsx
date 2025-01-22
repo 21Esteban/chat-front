@@ -3,7 +3,7 @@ import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
-import { MessageSquare, Settings, User } from "lucide-react";
+import { MessageSquare, Settings } from "lucide-react";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -17,7 +17,6 @@ import {
 } from "@/components/ui/alert-dialog";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
-import { z } from "zod";
 import {
   Form,
   FormControl,
@@ -38,14 +37,8 @@ import {
 import { useRouter } from "next/navigation";
 import customAxios from "@/app/_lib/customAxios";
 import { Chat } from "../_interfaces/chat-inteface";
-
-const formSchema = z.object({
-  chatName: z.string().nonempty("Name is required"),
-  phoneNumberContact: z
-    .string()
-    .min(10, { message: "Phone number must be at least 10 digits" })
-    .max(10, { message: "Phone number cannot exceed 10 digits" }),
-});
+import { ModeToggle } from "@/components/ui/mode-toggle";
+import { CreateChatSchema, createChatSchema } from "../_schemas/chatSchemas";
 
 interface ChatListProps {
   chats: Chat[];
@@ -56,25 +49,22 @@ export default function ChatList({ chats, chatSelected }: ChatListProps) {
   const router = useRouter();
   const [isLoading, setIsLoading] = useState(false);
   const [backMessage, setBackMessage] = useState("");
-  const form = useForm<z.infer<typeof formSchema>>({
-    resolver: zodResolver(formSchema),
+
+  const form = useForm<CreateChatSchema>({
+    resolver: zodResolver(createChatSchema),
     defaultValues: {
       chatName: "",
       phoneNumberContact: "",
     },
   });
 
-  async function createChat(values: z.infer<typeof formSchema>) {
+  async function createChat(values: CreateChatSchema) {
     try {
       setIsLoading(true);
-      const user = JSON.parse(localStorage.getItem("user") || "{}");
-      const {phoneNumber} = user
-      console.log({phoneNumber,...values})
-      const backResponse = await customAxios.post("/chat", {phoneNumber,...values});
+      const backResponse = await customAxios.post("/chat", values);
       setBackMessage(backResponse.data.message);
     } catch (error) {
-      console.log(error);
-      setBackMessage(error.response.data.message);
+      setBackMessage( error?.response?.data?.message || "Error desconocido");
     } finally {
       setIsLoading(false);
     }
@@ -85,23 +75,26 @@ export default function ChatList({ chats, chatSelected }: ChatListProps) {
       {/* Encabezado */}
       <div className="flex items-center justify-between p-6 border-b border-border">
         <h1 className="text-lg font-semibold">Chats</h1>
-        <DropdownMenu>
-          <DropdownMenuTrigger>
-            <Settings className="w-5 h-5" />
-          </DropdownMenuTrigger>
-          <DropdownMenuContent>
-            <DropdownMenuLabel>Options</DropdownMenuLabel>
-            <DropdownMenuSeparator />
-            <DropdownMenuItem
-              onClick={() => {
-                localStorage.removeItem("token");
-                router.push("authentication");
-              }}
-            >
-              Sign out
-            </DropdownMenuItem>
-          </DropdownMenuContent>
-        </DropdownMenu>
+        <div className="flex gap-4">
+          <ModeToggle />
+          <DropdownMenu>
+            <DropdownMenuTrigger>
+              <Settings className="w-5 h-5" />
+            </DropdownMenuTrigger>
+            <DropdownMenuContent>
+              <DropdownMenuLabel>Options</DropdownMenuLabel>
+              <DropdownMenuSeparator />
+              <DropdownMenuItem
+                onClick={() => {
+                  localStorage.removeItem("token");
+                  router.push("authentication");
+                }}
+              >
+                Sign out
+              </DropdownMenuItem>
+            </DropdownMenuContent>
+          </DropdownMenu>
+        </div>
       </div>
 
       {/* Barra de búsqueda */}

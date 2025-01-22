@@ -20,7 +20,7 @@ customAxios.interceptors.response.use(
 
     if (error.response.status === 401) {
       localStorage.removeItem("token");
-      window.location.href = "/login";
+      window.location.href = "/authentication";
     }
 
     if (error.response.status === 400) {
@@ -44,3 +44,5 @@ customAxios.interceptors.request.use(
 );
 
 export default customAxios;
+
+
